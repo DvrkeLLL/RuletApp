@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RuletApp</title>
+<meta name="application-name" content="RuletApp">
+<meta name="apple-mobile-web-app-title" content="RuletApp">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffe3f1">
+<link rel="icon" type="image/png" href="RuletApp.PNG">
+<link rel="shortcut icon" type="image/png" href="RuletApp.PNG">
+<link rel="apple-touch-icon" href="RuletApp.PNG">
+<link rel="manifest" href="RuletApp.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --text:#4a3b5c; --muted:#8c7fa0; --accent:#ff8fb8; --accent-dark:#e0709c;
+    --card:#ffffffb3; --line:#f3c1da; --off:#e6dcef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{min-height:100vh;font-family:'Nunito',sans-serif;color:var(--text);
+    background:linear-gradient(160deg,#ffe3f1,#e0ecff 55%,#e6ffe9) fixed;
+    display:flex;flex-direction:column;align-items:center;gap:18px;padding:22px 16px 48px}
+  svg.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  h1{font-weight:900;font-size:1.5rem;display:flex;align-items:center;gap:8px}
+  h1 svg.i{width:26px;height:26px;color:var(--accent)}
+
+  /* Ruleta */
+  .stage{position:relative;width:min(88vw,400px);aspect-ratio:1}
+  canvas#wheel{width:100%;height:100%;display:block;filter:drop-shadow(0 10px 16px #c9a9e855);cursor:grab;
+    touch-action:none;user-select:none;-webkit-user-select:none}
+  canvas#wheel:active{cursor:grabbing}
+  .hint{font-size:.78rem;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:6px;margin-top:-6px}
+  .hint svg.i{width:15px;height:15px}
+  .pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:2;width:38px;height:44px;
+    filter:drop-shadow(0 3px 3px #e0709c66)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+    font:800 1.05rem 'Nunito';border-radius:999px;transition:transform .1s, box-shadow .1s}
+  .btn:active{transform:translateY(3px)}
+  .spin{padding:14px 44px;background:var(--accent);color:#fff;box-shadow:0 6px 0 var(--accent-dark);letter-spacing:.06em}
+  .spin:active{box-shadow:0 3px 0 var(--accent-dark)}
+  .spin:disabled{opacity:.55;cursor:default}
+
+  /* Tarjetas */
+  .card{width:min(92vw,420px);background:var(--card);border:2px solid #fff;border-radius:24px;padding:16px;
+    backdrop-filter:blur(6px)}
+  .card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .card-h h2{font-size:1rem;font-weight:900;display:flex;align-items:center;gap:8px}
+  .count{font-size:.8rem;color:var(--muted);font-weight:700}
+
+  /* Agregar */
+  .add-row{display:flex;gap:8px}
+  .add-row input{flex:1;min-width:0;padding:12px 16px;border-radius:999px;border:2px solid var(--line);
+    background:#fff;font:700 1rem 'Nunito';color:var(--text);outline:none}
+  .add-row input:focus{border-color:var(--accent)}
+  .add-btn{width:48px;height:48px;background:var(--accent);color:#fff;box-shadow:0 4px 0 var(--accent-dark)}
+  .add-btn:active{box-shadow:0 1px 0 var(--accent-dark)}
+  .add-btn svg.i{width:24px;height:24px;stroke-width:3}
+  .msg{font-size:.78rem;color:var(--accent-dark);font-weight:700;min-height:1.1em;margin:6px 4px 0}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:999px;
+    font-weight:800;font-size:.9rem;animation:pop .2s ease}
+  .chip button{width:24px;height:24px;border-radius:50%;border:none;background:#ffffff99;color:var(--text);
+    display:grid;place-items:center;cursor:pointer}
+  .chip button svg.i{width:14px;height:14px;stroke-width:3}
+  .empty{color:var(--muted);font-size:.85rem;padding:6px 2px}
+  @keyframes pop{from{transform:scale(.6);opacity:0}}
+
+  .tools{display:flex;gap:8px;margin-top:14px}
+  .tool{flex:1;padding:9px 6px;background:#fff;color:var(--text);font-size:.8rem;border:2px solid var(--line)}
+  .tool svg.i{width:16px;height:16px}
+  .tool{position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  .tool > *{position:relative;z-index:1}
+  .hold::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:#ffb3d1;z-index:0}
+  .hold.holding{border-color:var(--accent)}
+  .hold.holding::before{width:100%;transition:width 3s linear}
+
+  /* Switches */
+  .opt{display:flex;align-items:center;gap:12px;padding:12px 2px;border-top:1.5px dashed var(--line)}
+  .opt:first-of-type{border-top:none}
+  .opt-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+  .opt-tx{flex:1}
+  .opt-tx b{display:block;font-size:.95rem}
+  .opt-tx span{font-size:.78rem;color:var(--muted)}
+  .sw{position:relative;width:50px;height:30px;flex-shrink:0}
+  .sw input{opacity:0;width:0;height:0}
+  .sw i{position:absolute;inset:0;border-radius:999px;background:var(--off);transition:.25s;cursor:pointer}
+  .sw i::after{content:"";position:absolute;width:22px;height:22px;left:4px;top:4px;border-radius:50%;
+    background:#fff;box-shadow:0 2px 4px #4a3b5c33;transition:.25s}
+  .sw input:checked + i{background:var(--accent)}
+  .sw input:checked + i::after{transform:translateX(20px)}
+
+  .seg{display:flex;background:var(--off);border-radius:999px;padding:3px;gap:2px}
+  .seg button{border:none;background:transparent;font:800 .75rem 'Nunito';color:var(--muted);
+    padding:6px 10px;border-radius:999px;cursor:pointer}
+  .seg button.on{background:#fff;color:var(--text);box-shadow:0 2px 4px #4a3b5c22}
+
+  /* Historial */
+  .hist{list-style:none;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+  .hist li{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.9rem;padding:8px 10px;background:#fff;border-radius:14px}
+  .hist .dot{width:12px;height:12px;border-radius:50%}
+  .hist .n{color:var(--muted);font-size:.75rem;width:22px}
+  .link{background:none;border:none;color:var(--muted);font:700 .8rem 'Nunito';cursor:pointer;display:flex;align-items:center;gap:4px}
+  .link svg.i{width:15px;height:15px}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:#4a3b5c55;display:none;place-items:center;z-index:20;padding:20px;backdrop-filter:blur(3px)}
+  .modal.show{display:grid}
+  .box{background:#fff;border-radius:28px;padding:26px 22px 20px;width:min(90vw,340px);text-align:center;animation:pop .25s ease}
+  .badge{width:64px;height:64px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;color:#fff}
+  .badge svg.i{width:32px;height:32px}
+  .box small{color:var(--muted);font-weight:700}
+  .box .win{font-size:1.8rem;font-weight:900;margin:4px 0 18px;padding:8px 14px;border-radius:16px;word-break:break-word}
+  .box .acts{display:flex;gap:10px}
+  .box .acts .btn{flex:1;padding:12px;font-size:.9rem}
+  .ghost{background:var(--off);color:var(--text)}
+  .solid{background:var(--accent);color:#fff;box-shadow:0 4px 0 var(--accent-dark)}
+
+  canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- Iconos SVG -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7M12 14v7M3 12h7M14 12h7M5.6 5.6l5 5M13.4 13.4l5 5M18.4 5.6l-5 5M10.6 13.4l-5 5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M3 6h12M3 12h8M3 18h4M17 8V20M14 17l3 3 3-3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+    <symbol id="i-minus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+    <symbol id="i-window" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L6 15"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></symbol>
+  </defs>
+</svg>
+
+<h1><svg class="i"><use href="#i-wheel"/></svg>RuletApp</h1>
+
+<div class="stage">
+  <svg class="pointer" viewBox="0 0 38 44"><path d="M19 42 4 14a15 15 0 1 1 30 0z" fill="#ff6b9b" stroke="#fff" stroke-width="3"/><circle cx="19" cy="14" r="5" fill="#fff"/></svg>
+  <canvas id="wheel" width="800" height="800"></canvas>
+</div>
+
+<div class="hint"><svg class="i"><use href="#i-hand"/></svg>Arrastra la ruleta con fuerza para girarla</div>
+
+<button class="btn spin" id="spinBtn">GIRAR</button>
+
+<!-- Opciones -->
+<section class="card">
+  <div class="card-h">
+    <h2><svg class="i"><use href="#i-list"/></svg>Opciones</h2>
+    <span class="count" id="count"></span>
+  </div>
+  <form class="add-row" id="addForm" autocomplete="off">
+    <input id="addInput" maxlength="30" placeholder="Escribe una opción...">
+    <button class="btn add-btn" type="submit" aria-label="Agregar"><svg class="i"><use href="#i-plus"/></svg></button>
+  </form>
+  <div class="msg" id="msg"></div>
+  <div class="chips" id="chips"></div>
+  <div class="tools">
+    <button class="btn tool" id="shuffleBtn"><svg class="i"><use href="#i-shuffle"/></svg>Mezclar</button>
+    <button class="btn tool" id="sortBtn"><svg class="i"><use href="#i-sort"/></svg>Ordenar</button>
+    <button class="btn tool hold" id="clearBtn"><svg class="i"><use href="#i-trash"/></svg><span>Vaciar</span></button>
+  </div>
+</section>
+
+<!-- Funciones -->
+<section class="card">
+  <div class="card-h"><h2><svg class="i"><use href="#i-settings"/></svg>Funciones</h2></div>
+  <div id="opts"></div>
+  <div class="opt">
+    <div class="opt-ic" style="background:#d9c2ff"><svg class="i"><use href="#i-clock"/></svg></div>
+    <div class="opt-tx"><b>Duración del giro</b><span>Más largo, más suspenso</span></div>
+    <div class="seg" id="seg">
+      <button data-d="3000">Corto</button><button data-d="5500">Normal</button><button data-d="9000">Largo</button>
+    </div>
+  </div>
+</section>
+
+<!-- Historial -->
+<section class="card" id="histCard">
+  <div class="card-h">
+    <h2><svg class="i"><use href="#i-history"/></svg>Historial</h2>
+    <button class="link" id="clearHist"><svg class="i"><use href="#i-trash"/></svg>Borrar</button>
+  </div>
+  <ul class="hist" id="hist"></ul>
+</section>
+
+<!-- Modal ganador -->
+<div class="modal" id="modal">
+  <div class="box">
+    <div class="badge" id="badge"><svg class="i"><use href="#i-trophy"/></svg></div>
+    <small>Salió</small>
+    <div class="win" id="winTxt"></div>
+    <div class="acts">
+      <button class="btn ghost" id="removeBtn"><svg class="i" style="width:16px;height:16px"><use href="#i-minus-circle"/></svg>Quitar</button>
+      <button class="btn solid" id="okBtn">Seguir</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const PALETTE=['#ffb3d1','#b8d8ff','#c9f2c7','#ffe3a8','#d9c2ff','#ffc9b3','#b3f0ec','#f7c6f0'];
+const FEATURES=[
+  {k:'remove',  t:'Descartar ganador', d:'Lo saca de la ruleta tras salir', ic:'i-minus-circle', c:'#ffb3d1', on:false},
+  {k:'sound',   t:'Sonido',            d:'Tic al pasar cada casilla',       ic:'i-volume',       c:'#b8d8ff', on:true},
+  {k:'confetti',t:'Confeti',           d:'Celebración al terminar',         ic:'i-sparkle',      c:'#ffe3a8', on:true},
+  {k:'popup',   t:'Ventana de resultado', d:'Muestra el ganador en grande', ic:'i-window',       c:'#c9f2c7', on:true},
+  {k:'history', t:'Historial',         d:'Guarda lo que va saliendo',       ic:'i-history',      c:'#ffc9b3', on:true},
+  {k:'dupes',   t:'Permitir repetidos',d:'Agregar opciones con el mismo nombre', ic:'i-copy',   c:'#b3f0ec', on:false},
+];
+
+let S={items:['Pizza','Sushi','Tacos','Pasta','Empanadas','Ramen'],set:{},dur:5500,hist:[]};
+FEATURES.forEach(f=>S.set[f.k]=f.on);
+try{const s=JSON.parse(localStorage.getItem('ruleta'));if(s)S={...S,...s,set:{...S.set,...s.set}};}catch(e){}
+const save=()=>{try{localStorage.setItem('ruleta',JSON.stringify(S))}catch(e){}};
+
+const $=id=>document.getElementById(id);
+const cv=$('wheel'),ctx=cv.getContext('2d'),R=cv.width/2;
+let angle=0,spinning=false,lastIdx=-1;
+const colorOf=i=>{let c=PALETTE[i%PALETTE.length];const n=S.items.length;if(n>1&&i===n-1&&n%PALETTE.length===1)c=PALETTE[1];return c;};
+
+/* ---------- Dibujo ---------- */
+function draw(){
+  const n=S.items.length,r=R-14;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.save();ctx.translate(R,R);
+  // aro
+  ctx.beginPath();ctx.arc(0,0,R-6,0,7);ctx.fillStyle='#fff';ctx.fill();
+  ctx.rotate(angle);
+  if(n===0){
+    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fillStyle='#f1eaf7';ctx.fill();
+    ctx.rotate(-angle);ctx.fillStyle='#8c7fa0';ctx.font='800 34px Nunito';ctx.textAlign='center';
+    ctx.fillText('Agrega opciones',0,-80);
+  }else{
+    const arc=2*Math.PI/n;
+    for(let i=0;i<n;i++){
+      ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,i*arc,(i+1)*arc);ctx.closePath();
+      ctx.fillStyle=colorOf(i);ctx.fill();
+      ctx.lineWidth=6;ctx.strokeStyle='#fff';ctx.stroke();
+      ctx.save();ctx.rotate(i*arc+arc/2);ctx.textAlign='right';ctx.textBaseline='middle';
+      const fs=n>16?22:n>10?28:34;ctx.font=`800 ${fs}px Nunito`;ctx.fillStyle='#4a3b5c';
+      let l=S.items[i];if(l.length>14)l=l.slice(0,13)+'…';
+      ctx.fillText(l,r-30,0);ctx.restore();
+    }
+  }
+  ctx.restore();
+  // centro
+  ctx.save();ctx.translate(R,R);
+  ctx.beginPath();ctx.arc(0,0,58,0,7);ctx.fillStyle='#fff';ctx.shadowColor='#c9a9e888';ctx.shadowBlur=16;ctx.fill();
+  ctx.shadowBlur=0;ctx.lineWidth=8;ctx.strokeStyle='#ff8fb8';ctx.stroke();
+  ctx.beginPath();ctx.arc(0,0,18,0,7);ctx.fillStyle='#ff8fb8';ctx.fill();
+  ctx.restore();
+}
+const idxAt=a=>{const n=S.items.length,arc=2*Math.PI/n;const x=((-Math.PI/2-a)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);return Math.floor(x/arc)%n;};
+
+/* ---------- Sonido ---------- */
+let AC=null;
+function tick(){
+  if(!S.set.sound)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=900;
+    g.gain.setValueAtTime(.12,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.05);
+    o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+.06);}catch(e){}
+}
+function chime(){
+  if(!S.set.sound)return;
+  try{[660,880,1320].forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+i*.09;
+    o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);
+    o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.4);});}catch(e){}
+}
+
+/* ---------- Giro ---------- */
+let coastId=0;
+function checkTick(){if(S.items.length<2)return;const k=idxAt(angle);if(k!==lastIdx){lastIdx=k;tick();}}
+
+function spin(){
+  if(spinning)return;
+  if(S.items.length<2){flash('Agrega al menos 2 opciones');return;}
+  cancelAnimationFrame(coastId);
+  spinning=true;$('spinBtn').disabled=true;lastIdx=idxAt(angle);
+  const start=angle,target=start+(5+S.dur/1500)*2*Math.PI+Math.random()*2*Math.PI,t0=performance.now();
+  (function f(now){
+    const p=Math.min((now-t0)/S.dur,1),e=1-Math.pow(1-p,4);
+    angle=start+(target-start)*e;draw();checkTick();
+    if(p<1)return requestAnimationFrame(f);
+    angle%=2*Math.PI;finish(idxAt(angle));
+  })(t0);
+}
+
+/* ---------- Girar con el dedo / mouse ---------- */
+const STRONG=0.011, MAXV=0.09, EPS=0.00005;   // velocidades en rad/ms
+let drag=null;
+function ptAngle(e){const b=cv.getBoundingClientRect();return Math.atan2(e.clientY-(b.top+b.height/2),e.clientX-(b.left+b.width/2));}
+
+cv.addEventListener('pointerdown',e=>{
+  if(spinning)return;
+  cancelAnimationFrame(coastId);
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();}catch(_){}
+  cv.setPointerCapture(e.pointerId);
+  const t=performance.now();
+  drag={last:ptAngle(e),moved:0,t0:t,samples:[{t,a:angle}]};
+  lastIdx=S.items.length>1?idxAt(angle):-1;
+});
+cv.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  const a=ptAngle(e);let d=a-drag.last;
+  if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;
+  drag.last=a;angle+=d;drag.moved+=Math.abs(d);
+  const t=performance.now();drag.samples.push({t,a:angle});
+  while(drag.samples.length>2&&t-drag.samples[0].t>100)drag.samples.shift();
+  draw();checkTick();
+});
+function endDrag(){
+  if(!drag)return;const d=drag;drag=null;const t=performance.now();
+  if(d.moved<0.05&&t-d.t0<300){spin();return;}          // toque simple = girar normal
+  const s=d.samples.filter(p=>t-p.t<=100);
+  const v=s.length>1?(s[s.length-1].a-s[0].a)/(t-s[0].t):0;
+  fling(v);
+}
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,endDrag));
+
+function fling(v){
+  if(Math.abs(v)<0.0008)return;
+  let strong=Math.abs(v)>=STRONG;
+  if(strong&&S.items.length<2){flash('Agrega al menos 2 opciones');strong=false;}
+  let k;
+  if(strong){
+    // impulso fuerte: giro real con resultado, la fricción se ajusta a la duración elegida
+    v=Math.sign(v)*Math.min(Math.max(Math.abs(v)*1.5,0.03),MAXV);
+    k=Math.log(Math.abs(v)/EPS)/S.dur;
+    spinning=true;$('spinBtn').disabled=true;
+  }else k=0.005;                                          // impulso suave: solo se desliza y frena
+  let prev=performance.now();
+  (function f(now){
+    const dt=Math.min(now-prev,40);prev=now;
+    angle+=v*dt;v*=Math.exp(-k*dt);draw();checkTick();
+    if(Math.abs(v)>EPS){coastId=requestAnimationFrame(f);return;}
+    if(strong){angle%=2*Math.PI;finish(idxAt(angle));}
+  })(prev);
+}
+let winIdx=-1;
+function finish(i){
+  winIdx=i;const name=S.items[i],col=colorOf(i);
+  chime();if(S.set.confetti)confetti();
+  if(S.set.history){S.hist.unshift({name,col});S.hist=S.hist.slice(0,50);renderHist();}
+  save();
+  if(S.set.popup){
+    $('winTxt').textContent=name;$('winTxt').style.background=col;$('badge').style.background='#ff8fb8';
+    $('removeBtn').classList.toggle('hide',S.set.remove);
+    $('okBtn').textContent=S.set.remove?'Descartar y seguir':'Seguir';
+    $('modal').classList.add('show');
+  }else{
+    flash('Salió: '+name);closeResult(false);
+  }
+}
+function closeResult(forceRemove){
+  $('modal').classList.remove('show');
+  if((S.set.remove||forceRemove)&&winIdx>-1){S.items.splice(winIdx,1);renderItems();}
+  winIdx=-1;spinning=false;$('spinBtn').disabled=false;
+}
+
+/* ---------- Opciones ---------- */
+let msgT;
+function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',2200);}
+function renderItems(){
+  const c=$('chips');c.innerHTML='';
+  if(!S.items.length)c.innerHTML='<div class="empty">Todavía no hay opciones</div>';
+  S.items.forEach((t,i)=>{
+    const d=document.createElement('div');d.className='chip';d.style.background=colorOf(i);
+    d.innerHTML=`<span></span><button aria-label="Quitar"><svg class="i"><use href="#i-x"/></svg></button>`;
+    d.querySelector('span').textContent=t;
+    d.querySelector('button').onclick=()=>{if(spinning)return;S.items.splice(i,1);renderItems();};
+    c.appendChild(d);
+  });
+  $('count').textContent=S.items.length+(S.items.length===1?' opción':' opciones');
+  save();draw();
+}
+$('addForm').onsubmit=e=>{
+  e.preventDefault();const v=$('addInput').value.trim();
+  if(!v||spinning)return;
+  if(!S.set.dupes&&S.items.some(x=>x.toLowerCase()===v.toLowerCase())){flash('Esa opción ya está en la ruleta');return;}
+  if(S.items.length>=40){flash('Máximo 40 opciones');return;}
+  S.items.push(v);$('addInput').value='';renderItems();$('addInput').focus();
+};
+$('shuffleBtn').onclick=()=>{if(spinning)return;for(let i=S.items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[S.items[i],S.items[j]]=[S.items[j],S.items[i]];}renderItems();};
+$('sortBtn').onclick=()=>{if(spinning)return;S.items.sort((a,b)=>a.localeCompare(b,'es'));renderItems();};
+/* Vaciar: mantener presionado 3 segundos */
+const clr=$('clearBtn');let holdT=null,holdStart=0;
+clr.addEventListener('pointerdown',e=>{
+  if(spinning||!S.items.length)return;
+  e.preventDefault();holdStart=performance.now();
+  clr.classList.add('holding');clr.querySelector('span').textContent='Mantén...';
+  holdT=setTimeout(()=>{
+    holdStart=0;S.items=[];renderItems();endHold();
+    flash('Se vaciaron todas las opciones');
+    try{navigator.vibrate&&navigator.vibrate(60)}catch(_){}
+  },3000);
+});
+function endHold(){
+  if(holdStart&&performance.now()-holdStart<3000)flash('Mantén presionado 3 segundos para vaciar');
+  holdStart=0;clearTimeout(holdT);
+  clr.classList.remove('holding');clr.querySelector('span').textContent='Vaciar';
+}
+['pointerup','pointerleave','pointercancel'].forEach(ev=>clr.addEventListener(ev,endHold));
+clr.oncontextmenu=e=>e.preventDefault();
+
+/* ---------- Funciones ---------- */
+FEATURES.forEach(f=>{
+  const d=document.createElement('div');d.className='opt';
+  d.innerHTML=`<div class="opt-ic" style="background:${f.c}"><svg class="i"><use href="#${f.ic}"/></svg></div>
+    <div class="opt-tx"><b>${f.t}</b><span>${f.d}</span></div>
+    <label class="sw"><input type="checkbox"><i></i></label>`;
+  const cb=d.querySelector('input');cb.checked=S.set[f.k];
+  cb.onchange=()=>{S.set[f.k]=cb.checked;if(f.k==='history')$('histCard').classList.toggle('hide',!cb.checked);save();};
+  $('opts').appendChild(d);
+});
+document.querySelectorAll('#seg button').forEach(b=>{
+  b.classList.toggle('on',+b.dataset.d===S.dur);
+  b.onclick=()=>{S.dur=+b.dataset.d;document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b));save();};
+});
+
+/* ---------- Historial ---------- */
+function renderHist(){
+  const h=$('hist');h.innerHTML='';
+  if(!S.hist.length){h.innerHTML='<li style="background:none;color:#8c7fa0;font-weight:600">Aún no hay resultados</li>';return;}
+  S.hist.forEach((r,i)=>{const li=document.createElement('li');
+    li.innerHTML=`<span class="n">${S.hist.length-i}</span><span class="dot" style="background:${r.col}"></span><span></span>`;
+    li.lastChild.textContent=r.name;h.appendChild(li);});
+}
+$('clearHist').onclick=()=>{S.hist=[];renderHist();save();};
+$('histCard').classList.toggle('hide',!S.set.history);
+
+/* ---------- Confeti ---------- */
+const cf=$('confetti'),cx=cf.getContext('2d');let parts=[];
+function confetti(){
+  cf.width=innerWidth;cf.height=innerHeight;
+  for(let i=0;i<140;i++)parts.push({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:Math.random()*-14-4,
+    s:6+Math.random()*6,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:PALETTE[i%PALETTE.length],l:1});
+  if(parts.length===140)requestAnimationFrame(loop);
+}
+function loop(){
+  cx.clearRect(0,0,cf.width,cf.height);
+  parts.forEach(p=>{p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.l-=.008;
+    cx.save();cx.globalAlpha=Math.max(p.l,0);cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;
+    cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore();});
+  parts=parts.filter(p=>p.l>0&&p.y<cf.height+20);
+  if(parts.length)requestAnimationFrame(loop);else cx.clearRect(0,0,cf.width,cf.height);
+}
+
+/* ---------- Eventos ---------- */
+$('spinBtn').onclick=spin;
+$('okBtn').onclick=()=>closeResult(false);
+$('removeBtn').onclick=()=>closeResult(true);
+$('modal').onclick=e=>{if(e.target.id==='modal')closeResult(false);};
+
+renderItems();renderHist();document.fonts.ready.then(draw);
+</script>
+</body>
+</html>
