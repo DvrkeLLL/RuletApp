@@ -4,8 +4,8 @@
   "start_url": "RuletApp.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ffe3f1",
-  "theme_color": "#ffe3f1",
+  "background_color": "#d6ecff",
+  "theme_color": "#d6ecff",
   "icons": [
     { "src": "RuletApp.PNG", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "RuletApp.PNG", "sizes": "512x512", "type": "image/png", "purpose": "any" }

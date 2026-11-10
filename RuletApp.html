@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#ffe3f1">
+<meta name="theme-color" content="#d6ecff">
 <link rel="icon" type="image/png" href="RuletApp.PNG">
 <link rel="shortcut icon" type="image/png" href="RuletApp.PNG">
 <link rel="apple-touch-icon" href="RuletApp.PNG">
@@ -17,12 +17,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --text:#4a3b5c; --muted:#8c7fa0; --accent:#ff8fb8; --accent-dark:#e0709c;
-    --card:#ffffffb3; --line:#f3c1da; --off:#e6dcef;
+    --text:#4a3b5c; --muted:#8c7fa0; --accent:#6cbcf0; --accent-dark:#3f9ad6;
+    --card:#ffffffb3; --line:#bfe1f7; --off:#dbe9f5;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{min-height:100vh;font-family:'Nunito',sans-serif;color:var(--text);
-    background:linear-gradient(160deg,#ffe3f1,#e0ecff 55%,#e6ffe9) fixed;
+    background:linear-gradient(160deg,#d6ecff,#e3f2ff 55%,#e2f8fb) fixed;
     display:flex;flex-direction:column;align-items:center;gap:18px;padding:22px 16px 48px}
   svg.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
   h1{font-weight:900;font-size:1.5rem;display:flex;align-items:center;gap:8px}
@@ -30,13 +30,13 @@
 
   /* Ruleta */
   .stage{position:relative;width:min(88vw,400px);aspect-ratio:1}
-  canvas#wheel{width:100%;height:100%;display:block;filter:drop-shadow(0 10px 16px #c9a9e855);cursor:grab;
+  canvas#wheel{width:100%;height:100%;display:block;filter:drop-shadow(0 10px 16px #8fc3ea55);cursor:grab;
     touch-action:none;user-select:none;-webkit-user-select:none}
   canvas#wheel:active{cursor:grabbing}
   .hint{font-size:.78rem;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:6px;margin-top:-6px}
   .hint svg.i{width:15px;height:15px}
   .pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:2;width:38px;height:44px;
-    filter:drop-shadow(0 3px 3px #e0709c66)}
+    filter:drop-shadow(0 3px 3px #3f9ad666)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
     font:800 1.05rem 'Nunito';border-radius:999px;transition:transform .1s, box-shadow .1s}
   .btn:active{transform:translateY(3px)}
@@ -75,9 +75,9 @@
   .tool svg.i{width:16px;height:16px}
   .tool{position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
   .tool > *{position:relative;z-index:1}
-  .hold::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:#ffb3d1;z-index:0}
+  .hold::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:#c4e5fb;z-index:0}
   .hold.holding{border-color:var(--accent)}
-  .hold.holding::before{width:100%;transition:width 3s linear}
+  .hold.holding::before{width:100%;transition:width var(--hold,3s) linear}
 
   /* Switches */
   .opt{display:flex;align-items:center;gap:12px;padding:12px 2px;border-top:1.5px dashed var(--line)}
@@ -99,13 +99,57 @@
     padding:6px 10px;border-radius:999px;cursor:pointer}
   .seg button.on{background:#fff;color:var(--text);box-shadow:0 2px 4px #4a3b5c22}
 
-  /* Historial */
-  .hist{list-style:none;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
-  .hist li{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.9rem;padding:8px 10px;background:#fff;border-radius:14px}
-  .hist .dot{width:12px;height:12px;border-radius:50%}
-  .hist .n{color:var(--muted);font-size:.75rem;width:22px}
-  .link{background:none;border:none;color:var(--muted);font:700 .8rem 'Nunito';cursor:pointer;display:flex;align-items:center;gap:4px}
-  .link svg.i{width:15px;height:15px}
+  /* Barra superior */
+  .top{width:min(92vw,420px);display:flex;align-items:center;justify-content:space-between}
+  .icon-btn{position:relative;width:46px;height:46px;border-radius:50%;border:2px solid #fff;background:var(--card);
+    color:var(--text);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 0 var(--line);transition:transform .1s,box-shadow .1s}
+  .icon-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+  .icon-btn svg.i{width:22px;height:22px}
+  .icon-btn.sm{width:36px;height:36px;background:var(--off);box-shadow:none;border:none}
+  .icon-btn.sm svg.i{width:18px;height:18px;stroke-width:2.8}
+  .badge-n{position:absolute;top:-5px;right:-5px;min-width:21px;height:21px;padding:0 5px;border-radius:999px;
+    background:var(--accent);color:#fff;font-size:.68rem;font-weight:900;display:grid;place-items:center;border:2px solid #fff}
+
+  /* Historial (panel) */
+  .sheet-bg{position:fixed;inset:0;background:#4a3b5c55;z-index:15;display:flex;align-items:flex-end;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
+  .sheet-bg.show{opacity:1;pointer-events:auto}
+  .sheet{width:min(100vw,460px);max-height:86vh;overflow:auto;background:linear-gradient(170deg,#f5faff,#eaf5ff);
+    border-radius:28px 28px 0 0;padding:10px 16px calc(20px + env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.9,.3,1)}
+  .sheet-bg.show .sheet{transform:none}
+  .grab{width:44px;height:5px;border-radius:9px;background:var(--off);margin:0 auto 12px}
+  @media(min-width:600px){.sheet-bg{align-items:center}.sheet{border-radius:28px}}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+  .stat{background:#fff;border-radius:16px;padding:8px 10px;min-width:0}
+  .stat small{display:block;font-size:.68rem;color:var(--muted);font-weight:800}
+  .stat b{display:block;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .h-off{font-size:.78rem;background:#ffe3a8;border-radius:14px;padding:8px 12px;margin-bottom:10px;font-weight:700}
+  .h-day{font-size:.72rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 4px 6px}
+  .h-item{background:#fff;border-radius:18px;margin-bottom:8px;overflow:hidden}
+  .h-top{width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;background:none;border:none;
+    font-family:inherit;color:var(--text);text-align:left;cursor:pointer}
+  .h-top .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px #fff,0 0 0 4px var(--off)}
+  .h-tx{flex:1;min-width:0}
+  .h-tx b{display:block;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .h-tx small{font-size:.74rem;color:var(--muted);font-weight:700}
+  .tag{font-size:.64rem;font-weight:900;background:var(--off);color:var(--muted);padding:3px 8px;border-radius:999px;flex-shrink:0}
+  svg.i.chev{width:18px;height:18px;color:var(--muted);transition:transform .2s}
+  .h-item.open svg.i.chev{transform:rotate(180deg)}
+  .h-det{display:none;padding:2px 12px 12px;border-top:1.5px dashed var(--line)}
+  .h-item.open .h-det{display:block}
+  .h-info{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--muted);font-weight:700;margin:10px 0}
+  .h-info svg.i{width:15px;height:15px}
+  .h-lbl{font-size:.72rem;font-weight:900;margin-bottom:6px}
+  .mini{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .mchip{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;font-weight:800;padding:4px 10px;border-radius:999px;opacity:.6}
+  .mchip.win{opacity:1;box-shadow:0 0 0 2px var(--accent)}
+  .mchip svg.i{width:13px;height:13px;stroke-width:2.6}
+  .h-acts{display:flex;gap:8px}
+  .tool.icon-only{flex:0 0 44px}
+  .h-empty{text-align:center;color:var(--muted);font-size:.85rem;padding:26px 14px;line-height:1.45}
+  .h-empty svg.i{width:40px;height:40px;color:var(--line);display:block;margin:0 auto 8px}
+  .clear-h{width:100%;margin-top:10px}
 
   /* Modal */
   .modal{position:fixed;inset:0;background:#4a3b5c55;display:none;place-items:center;z-index:20;padding:20px;backdrop-filter:blur(3px)}
@@ -145,14 +189,21 @@
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
     <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L6 15"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-restore" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
     <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></symbol>
   </defs>
 </svg>
 
-<h1><svg class="i"><use href="#i-wheel"/></svg>RuletApp</h1>
+<header class="top">
+  <h1><svg class="i"><use href="#i-wheel"/></svg>RuletApp</h1>
+  <button class="icon-btn" id="histBtn" aria-label="Ver historial">
+    <svg class="i"><use href="#i-history"/></svg><span class="badge-n hide" id="histBadge"></span>
+  </button>
+</header>
 
 <div class="stage">
-  <svg class="pointer" viewBox="0 0 38 44"><path d="M19 42 4 14a15 15 0 1 1 30 0z" fill="#ff6b9b" stroke="#fff" stroke-width="3"/><circle cx="19" cy="14" r="5" fill="#fff"/></svg>
+  <svg class="pointer" viewBox="0 0 38 44"><path d="M19 42 4 14a15 15 0 1 1 30 0z" fill="#4aa8e8" stroke="#fff" stroke-width="3"/><circle cx="19" cy="14" r="5" fill="#fff"/></svg>
   <canvas id="wheel" width="800" height="800"></canvas>
 </div>
 
@@ -192,14 +243,21 @@
   </div>
 </section>
 
-<!-- Historial -->
-<section class="card" id="histCard">
-  <div class="card-h">
-    <h2><svg class="i"><use href="#i-history"/></svg>Historial</h2>
-    <button class="link" id="clearHist"><svg class="i"><use href="#i-trash"/></svg>Borrar</button>
+<!-- Historial (panel) -->
+<div class="sheet-bg" id="histSheet">
+  <div class="sheet" role="dialog" aria-label="Historial">
+    <div class="grab"></div>
+    <div class="card-h">
+      <h2><svg class="i"><use href="#i-history"/></svg>Historial</h2>
+      <button class="icon-btn sm" id="histClose" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="h-off hide" id="histOff">El historial está apagado en Funciones, así que los giros nuevos no se guardan.</div>
+    <div class="stats" id="histStats"></div>
+    <div id="hist"></div>
+    <div class="msg" id="histMsg"></div>
+    <button class="btn tool hold clear-h" id="clearHist"><svg class="i"><use href="#i-trash"/></svg><span>Borrar historial</span></button>
   </div>
-  <ul class="hist" id="hist"></ul>
-</section>
+</div>
 
 <!-- Modal ganador -->
 <div class="modal" id="modal">
@@ -223,7 +281,7 @@ const FEATURES=[
   {k:'sound',   t:'Sonido',            d:'Tic al pasar cada casilla',       ic:'i-volume',       c:'#b8d8ff', on:true},
   {k:'confetti',t:'Confeti',           d:'Celebración al terminar',         ic:'i-sparkle',      c:'#ffe3a8', on:true},
   {k:'popup',   t:'Ventana de resultado', d:'Muestra el ganador en grande', ic:'i-window',       c:'#c9f2c7', on:true},
-  {k:'history', t:'Historial',         d:'Guarda lo que va saliendo',       ic:'i-history',      c:'#ffc9b3', on:true},
+  {k:'history', t:'Historial',         d:'Guarda cada giro con sus opciones',       ic:'i-history',      c:'#ffc9b3', on:true},
   {k:'dupes',   t:'Permitir repetidos',d:'Agregar opciones con el mismo nombre', ic:'i-copy',   c:'#b3f0ec', on:false},
 ];
 
@@ -246,7 +304,7 @@ function draw(){
   ctx.beginPath();ctx.arc(0,0,R-6,0,7);ctx.fillStyle='#fff';ctx.fill();
   ctx.rotate(angle);
   if(n===0){
-    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fillStyle='#f1eaf7';ctx.fill();
+    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fillStyle='#e8f2fa';ctx.fill();
     ctx.rotate(-angle);ctx.fillStyle='#8c7fa0';ctx.font='800 34px Nunito';ctx.textAlign='center';
     ctx.fillText('Agrega opciones',0,-80);
   }else{
@@ -264,9 +322,9 @@ function draw(){
   ctx.restore();
   // centro
   ctx.save();ctx.translate(R,R);
-  ctx.beginPath();ctx.arc(0,0,58,0,7);ctx.fillStyle='#fff';ctx.shadowColor='#c9a9e888';ctx.shadowBlur=16;ctx.fill();
-  ctx.shadowBlur=0;ctx.lineWidth=8;ctx.strokeStyle='#ff8fb8';ctx.stroke();
-  ctx.beginPath();ctx.arc(0,0,18,0,7);ctx.fillStyle='#ff8fb8';ctx.fill();
+  ctx.beginPath();ctx.arc(0,0,58,0,7);ctx.fillStyle='#fff';ctx.shadowColor='#8fc3ea88';ctx.shadowBlur=16;ctx.fill();
+  ctx.shadowBlur=0;ctx.lineWidth=8;ctx.strokeStyle='#6cbcf0';ctx.stroke();
+  ctx.beginPath();ctx.arc(0,0,18,0,7);ctx.fillStyle='#6cbcf0';ctx.fill();
   ctx.restore();
 }
 const idxAt=a=>{const n=S.items.length,arc=2*Math.PI/n;const x=((-Math.PI/2-a)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);return Math.floor(x/arc)%n;};
@@ -301,7 +359,7 @@ function spin(){
     const p=Math.min((now-t0)/S.dur,1),e=1-Math.pow(1-p,4);
     angle=start+(target-start)*e;draw();checkTick();
     if(p<1)return requestAnimationFrame(f);
-    angle%=2*Math.PI;finish(idxAt(angle));
+    angle%=2*Math.PI;finish(idxAt(angle),'boton');
   })(t0);
 }
 
@@ -353,17 +411,25 @@ function fling(v){
     const dt=Math.min(now-prev,40);prev=now;
     angle+=v*dt;v*=Math.exp(-k*dt);draw();checkTick();
     if(Math.abs(v)>EPS){coastId=requestAnimationFrame(f);return;}
-    if(strong){angle%=2*Math.PI;finish(idxAt(angle));}
+    if(strong){angle%=2*Math.PI;finish(idxAt(angle),'mano');}
   })(prev);
 }
-let winIdx=-1;
-function finish(i){
+let winIdx=-1,winId=0;
+const HOW={boton:'Giro con botón',mano:'Lanzada a mano'};
+const DURN={3000:'corta',5500:'normal',9000:'larga'};
+function finish(i,how){
   winIdx=i;const name=S.items[i],col=colorOf(i);
   chime();if(S.set.confetti)confetti();
-  if(S.set.history){S.hist.unshift({name,col});S.hist=S.hist.slice(0,50);renderHist();}
+  winId=0;
+  if(S.set.history){
+    winId=Date.now();
+    S.hist.unshift({id:winId,t:winId,name,col,idx:i,how,dur:DURN[S.dur]||'',
+      opts:S.items.map((n,j)=>({n,c:colorOf(j)})),removed:false});
+    S.hist=S.hist.slice(0,100);renderHist();
+  }
   save();
   if(S.set.popup){
-    $('winTxt').textContent=name;$('winTxt').style.background=col;$('badge').style.background='#ff8fb8';
+    $('winTxt').textContent=name;$('winTxt').style.background=col;$('badge').style.background='#6cbcf0';
     $('removeBtn').classList.toggle('hide',S.set.remove);
     $('okBtn').textContent=S.set.remove?'Descartar y seguir':'Seguir';
     $('modal').classList.add('show');
@@ -373,13 +439,17 @@ function finish(i){
 }
 function closeResult(forceRemove){
   $('modal').classList.remove('show');
-  if((S.set.remove||forceRemove)&&winIdx>-1){S.items.splice(winIdx,1);renderItems();}
-  winIdx=-1;spinning=false;$('spinBtn').disabled=false;
+  if((S.set.remove||forceRemove)&&winIdx>-1){
+    S.items.splice(winIdx,1);
+    const h=S.hist.find(x=>x.id&&x.id===winId);if(h){h.removed=true;renderHist();}
+    renderItems();
+  }
+  winIdx=-1;winId=0;spinning=false;$('spinBtn').disabled=false;
 }
 
 /* ---------- Opciones ---------- */
-let msgT;
-function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',2200);}
+const msgT={};
+function flash(t,id='msg'){const e=$(id);e.textContent=t;clearTimeout(msgT[id]);msgT[id]=setTimeout(()=>e.textContent='',2400);}
 function renderItems(){
   const c=$('chips');c.innerHTML='';
   if(!S.items.length)c.innerHTML='<div class="empty">Todavía no hay opciones</div>';
@@ -402,25 +472,26 @@ $('addForm').onsubmit=e=>{
 };
 $('shuffleBtn').onclick=()=>{if(spinning)return;for(let i=S.items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[S.items[i],S.items[j]]=[S.items[j],S.items[i]];}renderItems();};
 $('sortBtn').onclick=()=>{if(spinning)return;S.items.sort((a,b)=>a.localeCompare(b,'es'));renderItems();};
-/* Vaciar: mantener presionado 3 segundos */
-const clr=$('clearBtn');let holdT=null,holdStart=0;
-clr.addEventListener('pointerdown',e=>{
-  if(spinning||!S.items.length)return;
-  e.preventDefault();holdStart=performance.now();
-  clr.classList.add('holding');clr.querySelector('span').textContent='Mantén...';
-  holdT=setTimeout(()=>{
-    holdStart=0;S.items=[];renderItems();endHold();
-    flash('Se vaciaron todas las opciones');
-    try{navigator.vibrate&&navigator.vibrate(60)}catch(_){}
-  },3000);
-});
-function endHold(){
-  if(holdStart&&performance.now()-holdStart<3000)flash('Mantén presionado 3 segundos para vaciar');
-  holdStart=0;clearTimeout(holdT);
-  clr.classList.remove('holding');clr.querySelector('span').textContent='Vaciar';
+/* Botones que se mantienen presionados */
+function holdButton(btn,ms,busyLabel,can,done,hint){
+  const sp=btn.querySelector('span'),label=sp.textContent;let t=null,st=0;
+  btn.style.setProperty('--hold',ms+'ms');
+  btn.addEventListener('pointerdown',e=>{
+    if(!can())return;e.preventDefault();st=performance.now();
+    btn.classList.add('holding');sp.textContent=busyLabel;
+    t=setTimeout(()=>{st=0;end();done();try{navigator.vibrate&&navigator.vibrate(60)}catch(_){}},ms);
+  });
+  function end(){
+    if(st&&performance.now()-st<ms)hint();
+    st=0;clearTimeout(t);btn.classList.remove('holding');sp.textContent=label;
+  }
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,end));
+  btn.oncontextmenu=e=>e.preventDefault();
 }
-['pointerup','pointerleave','pointercancel'].forEach(ev=>clr.addEventListener(ev,endHold));
-clr.oncontextmenu=e=>e.preventDefault();
+holdButton($('clearBtn'),3000,'Mantén...',
+  ()=>!spinning&&S.items.length>0,
+  ()=>{S.items=[];renderItems();flash('Se vaciaron todas las opciones');},
+  ()=>flash('Mantén presionado 3 segundos para vaciar'));
 
 /* ---------- Funciones ---------- */
 FEATURES.forEach(f=>{
@@ -429,7 +500,7 @@ FEATURES.forEach(f=>{
     <div class="opt-tx"><b>${f.t}</b><span>${f.d}</span></div>
     <label class="sw"><input type="checkbox"><i></i></label>`;
   const cb=d.querySelector('input');cb.checked=S.set[f.k];
-  cb.onchange=()=>{S.set[f.k]=cb.checked;if(f.k==='history')$('histCard').classList.toggle('hide',!cb.checked);save();};
+  cb.onchange=()=>{S.set[f.k]=cb.checked;if(f.k==='history')renderHist();save();};
   $('opts').appendChild(d);
 });
 document.querySelectorAll('#seg button').forEach(b=>{
@@ -438,15 +509,93 @@ document.querySelectorAll('#seg button').forEach(b=>{
 });
 
 /* ---------- Historial ---------- */
-function renderHist(){
-  const h=$('hist');h.innerHTML='';
-  if(!S.hist.length){h.innerHTML='<li style="background:none;color:#8c7fa0;font-weight:600">Aún no hay resultados</li>';return;}
-  S.hist.forEach((r,i)=>{const li=document.createElement('li');
-    li.innerHTML=`<span class="n">${S.hist.length-i}</span><span class="dot" style="background:${r.col}"></span><span></span>`;
-    li.lastChild.textContent=r.name;h.appendChild(li);});
+const ico=(id,cls)=>`<svg class="i ${cls||''}"><use href="#${id}"/></svg>`;
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+const hhmm=t=>new Date(t).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+function dayLabel(t){
+  const d=new Date(t).toDateString(),hoy=new Date(),ayer=new Date();ayer.setDate(hoy.getDate()-1);
+  if(d===hoy.toDateString())return 'Hoy';
+  if(d===ayer.toDateString())return 'Ayer';
+  const s=new Date(t).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+  return s[0].toUpperCase()+s.slice(1);
 }
-$('clearHist').onclick=()=>{S.hist=[];renderHist();save();};
-$('histCard').classList.toggle('hide',!S.set.history);
+function renderHist(){
+  const n=S.hist.length;
+  $('histBadge').textContent=n>99?'99+':n;$('histBadge').classList.toggle('hide',!n);
+  $('histOff').classList.toggle('hide',S.set.history);
+  $('clearHist').classList.toggle('hide',!n);
+
+  // Resumen
+  const st=$('histStats');st.innerHTML='';st.classList.toggle('hide',!n);
+  if(n){
+    const cnt={};S.hist.forEach(h=>cnt[h.name]=(cnt[h.name]||0)+1);
+    const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+    [['Giros',n],['Más veces',top[0]+' ×'+top[1]],['Último',S.hist[0].name]].forEach(([k,v])=>{
+      const d=el('div','stat');d.append(el('small',null,k),el('b',null,v));st.appendChild(d);});
+  }
+
+  const L=$('hist');L.innerHTML='';
+  if(!n){
+    const e=el('div','h-empty');e.innerHTML=ico('i-history');
+    e.append('Aún no hay giros. Cada resultado aparecerá aquí con la hora y las opciones que tenía la ruleta en ese momento.');
+    L.appendChild(e);return;
+  }
+  let lastDay=null;
+  S.hist.forEach(h=>{
+    const has=!!(h.t&&h.opts);
+    const day=has?dayLabel(h.t):'Registros antiguos';
+    if(day!==lastDay){lastDay=day;L.appendChild(el('div','h-day',day));}
+
+    const it=el('div','h-item'),top=el('button','h-top');
+    const dot=el('span','dot');dot.style.background=h.col;
+    const tx=el('div','h-tx');
+    tx.append(el('b',null,h.name),el('small',null,has?`${hhmm(h.t)} · entre ${h.opts.length} opciones`:'Sin detalles guardados'));
+    top.append(dot,tx);
+    if(h.removed)top.append(el('span','tag','Descartado'));
+    top.insertAdjacentHTML('beforeend',ico('i-chevron','chev'));
+    it.appendChild(top);
+
+    const det=el('div','h-det');
+    if(has){
+      const info=el('div','h-info');
+      info.innerHTML=ico(h.how==='mano'?'i-hand':'i-wheel');
+      info.append(`${HOW[h.how]||'Giro'}${h.dur?' · duración '+h.dur:''}`);
+      det.append(info,el('div','h-lbl','Opciones en ese momento'));
+      const mini=el('div','mini');
+      h.opts.forEach((o,j)=>{
+        const c=el('span','mchip'+(j===h.idx?' win':''));c.style.background=o.c;
+        if(j===h.idx)c.innerHTML=ico('i-trophy');
+        c.append(o.n);mini.appendChild(c);
+      });
+      det.appendChild(mini);
+    }
+    const acts=el('div','h-acts');
+    if(has){
+      const use=el('button','btn tool');use.innerHTML=ico('i-restore')+'<span>Usar estas opciones</span>';
+      use.onclick=()=>{
+        if(spinning)return;
+        S.items=h.opts.map(o=>o.n);renderItems();closeHist();flash('Se cargaron las opciones de ese giro');
+      };
+      acts.appendChild(use);
+    }
+    const del=el('button','btn tool icon-only');del.innerHTML=ico('i-trash');del.setAttribute('aria-label','Borrar este registro');
+    del.onclick=()=>{S.hist=S.hist.filter(x=>x!==h);renderHist();save();};
+    acts.appendChild(del);det.appendChild(acts);
+    it.appendChild(det);
+    top.onclick=()=>it.classList.toggle('open');
+    L.appendChild(it);
+  });
+}
+function openHist(){renderHist();$('histSheet').classList.add('show');document.body.style.overflow='hidden';}
+function closeHist(){$('histSheet').classList.remove('show');document.body.style.overflow='';}
+$('histBtn').onclick=openHist;
+$('histClose').onclick=closeHist;
+$('histSheet').onclick=e=>{if(e.target.id==='histSheet')closeHist();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHist();});
+holdButton($('clearHist'),2000,'Mantén...',
+  ()=>S.hist.length>0,
+  ()=>{S.hist=[];renderHist();save();flash('Historial borrado','histMsg');},
+  ()=>flash('Mantén presionado 2 segundos para borrar todo','histMsg'));
 
 /* ---------- Confeti ---------- */
 const cf=$('confetti'),cx=cf.getContext('2d');let parts=[];
